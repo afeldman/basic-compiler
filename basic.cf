@@ -1,0 +1,46 @@
+-- basic language
+
+comment "`";
+
+BasicGr. Basic ::= [Line];
+
+(:[]). [Line] ::= Line ;
+(:).   [Line] ::= Line [Line] ;
+
+LBasic. Line ::= Integer Stm ;
+
+SRem.     Stm ::= "REM" String ;
+SGoTo.    Stm ::= "GOTO" Integer ;
+SLet.     Stm ::= "LET" Ident "=" Exp ;
+SPrint.   Stm ::= "PRINT" Exp ;
+SInput.   Stm ::= "INPUT" Ident ;
+SIfStm.   Stm ::= "IF" Ident "=" Exp "THEN" Exp;
+SIfElse.  Stm ::= "IF" Ident "=" Exp "THEN" Exp "ELSE" Exp ;
+SFORStm.  Stm ::= "FOR" Ident "=" Exp "TO" Exp ;
+SFORStmS. Stm ::= "FOR" Ident "=" Exp "TO" Exp "STEP" Integer ;
+SNext.    Stm ::= "NEXT" Ident ;
+SEnd.     Stm ::= "END" ;
+
+EUOperation. Exp ::= UOp Exp ;
+EOperation.  Exp ::= Exp Op Exp ;
+EBreace.     Exp ::= "(" Exp ")" ;
+EInt.        Exp ::= Integer ;
+EString.     Exp ::= String ;
+EIdent.      Exp ::= Ident ;
+
+OPlus.    Op ::= "+" ;
+OMinus.   Op ::= "-" ;
+OMult.    Op ::= "*" ;
+ODiv.     Op ::= "/" ;
+OMod.     Op ::= "%" ;
+OEq.      Op ::= "=" ;
+OLt.      Op ::= "<" ;
+OLtEq.    Op ::= "<=" ;
+OGt.      Op ::= ">" ;
+OGtEq.    Op ::= ">=" ;
+ONEq.     Op ::= "<>" ;
+OAnd.     Op  ::= "&" ;
+OOr.      Op  ::= "|" ;
+
+UOMinus.  UOp ::= "-" ;
+UONot.    UOp ::= "!" ;
