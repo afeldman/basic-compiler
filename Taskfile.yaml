@@ -1,0 +1,48 @@
+version: "3"
+
+tasks:
+  generate:
+    desc: Generate parser from grammar
+    cmds:
+      - bnfc -m --haskell -d basic.cf
+      - mkdir -p src
+      - mv basic/*.hs src/ 2>/dev/null || true
+      - rmdir basic 2>/dev/null || true
+
+  build:
+    desc: Build the compiler
+    deps: [generate]
+    cmds:
+      - stack build
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - stack clean
+      - rm -f src/AbsBasic.hs src/LexBasic.hs src/ParBasic.hs src/ErrM.hs
+      - rm -f test/*.ll test/a.out
+
+  test:
+    desc: Test the compiler with example programs
+    deps: [build]
+    cmds:
+      - echo "=== Testing Hello World ==="
+      - stack exec basic -- -S test/hallo_welt.basic
+      - clang test/hallo_welt.ll runtime.c -o test/hello
+      - ./test/hello
+      - echo ""
+      - echo "=== Testing Average Program ==="
+      - stack exec basic -- -S test/test_prog.basic
+      - clang test/test_prog.ll runtime.c -o test/test_prog
+      - echo "5" | ./test/test_prog
+
+  run:
+    desc: Run compiler on a file
+    cmds:
+      - stack exec basic -- {{.CLI_ARGS}}
+
+  default:
+    desc: Build and test
+    cmds:
+      - task: build
+      - task: test

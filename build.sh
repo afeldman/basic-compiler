@@ -1,10 +1,24 @@
- #!/bin/sh
+ #!/bin/bash
+# Build script for BASIC compiler
 
-bnfc -m basic.cf
-make
-make clean
+set -e
 
-./TestBasic < test/hallo_welt.basic
-./TestBasic < test/test_prog.basic
+echo "=== Building BASIC Compiler ==="
 
-make distclean
+# Generate parser with BNFC
+echo "Generating parser..."
+bnfc -m --haskell -d basic.cf
+mv basic/*.hs src/ 2>/dev/null || true
+rmdir basic 2>/dev/null || true
+
+# Build with Stack
+echo "Building compiler..."
+stack build
+
+echo ""
+echo "✅ Build complete!"
+echo ""
+echo "Usage:"
+echo "  stack exec basic -- input.basic"
+echo "  stack exec basic -- -S input.basic  # Emit LLVM IR"
+echo ""
