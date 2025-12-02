@@ -78,7 +78,14 @@ main = do
   (opts, files) <- parseOpts args
   
   when (optHelp opts) $ do
-    putStrLn $ usageInfo "BASIC Compiler - Compile BASIC to LLVM" options
+    putStrLn banner
+    putStrLn $ usageInfo "\nBASIC Compiler - Classic BASIC to LLVM\n\nUsage: basic [OPTIONS] <input.basic>" options
+    putStrLn "\nExamples:"
+    putStrLn "  basic -S hello.basic              # Generate LLVM IR"
+    putStrLn "  basic -S -o out.ll program.basic  # Specify output file"
+    putStrLn "  clang out.ll runtime.c -o prog    # Compile to executable"
+    putStrLn "\nPart of ACC (Anton's Compiler Collection)"
+    putStrLn "Repository: https://github.com/afeldman/basic-compiler"
     exitSuccess
   
   case files of
@@ -112,7 +119,8 @@ main = do
                 withModuleFromAST ctx newast moduleLLVMAssembly
               
               BS.writeFile outputFile llvmIR
-              putStrLn $ "LLVM IR written to: " ++ outputFile
+              putStrLn $ "✓ LLVM IR written to: " ++ outputFile
+              putStrLn $ "  Next: clang " ++ outputFile ++ " runtime.c -o " ++ replaceExtension file ""
             
             else do
               -- Compile to object file (would need LLVM compilation)
@@ -126,9 +134,21 @@ main = do
               
               let llFile = replaceExtension file ".ll"
               BS.writeFile llFile llvmIR
-              putStrLn $ "LLVM IR written to: " ++ llFile
-              putStrLn "Note: Use 'clang' to compile to executable:"
-              putStrLn $ "  clang " ++ llFile ++ " runtime.c -o " ++ outputFile
+              putStrLn $ "✓ LLVM IR written to: " ++ llFile
+              putStrLn $ "  Next: clang " ++ llFile ++ " runtime.c -o " ++ outputFile
+
+-- ASCII Art Banner
+banner :: String
+banner = unlines
+  [ "╔══════════════════════════════════════════════════════════╗"
+  , "║                   BASIC COMPILER                         ║"
+  , "║              Classic BASIC → LLVM IR                     ║"
+  , "║                                                          ║"
+  , "║  Features: LET, PRINT, INPUT, GOTO, FOR/NEXT, IF/THEN   ║"
+  , "║  Backend:  LLVM IR → Native Code                        ║"
+  , "║  Part of:  ACC (Anton's Compiler Collection)            ║"
+  , "╚══════════════════════════════════════════════════════════╝"
+  ]
 
 -- Helper function
 replaceExtension :: FilePath -> String -> FilePath
