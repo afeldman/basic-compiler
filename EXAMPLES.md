@@ -26,6 +26,7 @@ The simplest BASIC program prints a message and exits.
 ```
 
 **Compile and run:**
+
 ```bash
 stack exec basic -- -S test/hallo_welt.basic -o hello.ll
 clang hello.ll runtime.c -o hello
@@ -33,6 +34,7 @@ clang hello.ll runtime.c -o hello
 ```
 
 **Output:**
+
 ```
 Hello, World!
 ```
@@ -58,6 +60,7 @@ BASIC uses the `LET` statement to assign values to variables.
 ```
 
 **Output:**
+
 ```
 15
 5
@@ -66,6 +69,7 @@ BASIC uses the `LET` statement to assign values to variables.
 ```
 
 **Supported operators:**
+
 - Addition: `+`
 - Subtraction: `-`
 - Multiplication: `*`
@@ -87,6 +91,7 @@ The `INPUT` statement reads a number from the user.
 ```
 
 **Usage:**
+
 ```bash
 stack exec basic -- -S input.basic -o input.ll
 clang input.ll runtime.c -o input
@@ -94,6 +99,7 @@ clang input.ll runtime.c -o input
 ```
 
 **Example interaction:**
+
 ```
 Enter a number:
 42
@@ -133,6 +139,7 @@ Jump to a line number if a condition is true.
 ```
 
 **Comparison operators:**
+
 - Equal: `=`
 - Less than: `<`
 - Less than or equal: `<=`
@@ -156,6 +163,7 @@ Count from 1 to 10 and print each number.
 ```
 
 **Output:**
+
 ```
 1
 2
@@ -174,6 +182,7 @@ Count from 1 to 10 and print each number.
 ```
 
 **Output:**
+
 ```
 0
 5
@@ -195,6 +204,7 @@ Count from 1 to 10 and print each number.
 ```
 
 **Output:**
+
 ```
 Sum 1-10:
 55
@@ -224,6 +234,7 @@ Generate the first N Fibonacci numbers.
 ```
 
 **Usage:**
+
 ```bash
 stack exec basic -- -S test/fibonacci.basic -o fib.ll
 clang fib.ll runtime.c -o fib
@@ -231,6 +242,7 @@ echo "10" | ./fib
 ```
 
 **Output:**
+
 ```
 How many Fibonacci numbers?
 0
@@ -265,6 +277,7 @@ Calculate the factorial of a number.
 ```
 
 **Usage:**
+
 ```bash
 stack exec basic -- -S test/factorial.basic -o fact.ll
 clang fact.ll runtime.c -o fact
@@ -272,6 +285,7 @@ echo "5" | ./fact
 ```
 
 **Output:**
+
 ```
 Enter a number:
 Factorial is:
@@ -279,6 +293,7 @@ Factorial is:
 ```
 
 **Explanation:**
+
 - 5! = 5 × 4 × 3 × 2 × 1 = 120
 
 ---
@@ -308,6 +323,7 @@ Demonstrate nested FOR loops.
 ```
 
 **Output:**
+
 ```
 Sum 1-10:
 55
@@ -316,6 +332,7 @@ Nested sum:
 ```
 
 **Explanation:**
+
 - Sum of 1-10 = 55
 - Nested sum: (1×1 + 1×2 + 1×3) + (2×1 + 2×2 + 2×3) + (3×1 + 3×2 + 3×3) = 36
 
@@ -327,18 +344,19 @@ Calculate the average of N numbers using a loop with GOTO.
 
 ```basic
 5 LET S = 0
-10 INPUT V 
+10 INPUT V
 20 LET N = V
-30 IF N = 0 THEN 99 
-40 FOR I = 1 TO N 
-45 LET S = S + I 
-50 NEXT I 
-60 PRINT S/N 
-70 GOTO 5 
+30 IF N = 0 THEN 99
+40 FOR I = 1 TO N
+45 LET S = S + I
+50 NEXT I
+60 PRINT S/N
+70 GOTO 5
 99 END
 ```
 
 **Usage:**
+
 ```bash
 stack exec basic -- -S test/test_prog.basic -o avg.ll
 clang avg.ll runtime.c -o avg
@@ -346,11 +364,13 @@ echo "5" | ./avg
 ```
 
 **Output:**
+
 ```
 3
 ```
 
 **Explanation:**
+
 - Reads N = 5
 - Calculates sum: 1 + 2 + 3 + 4 + 5 = 15
 - Average: 15 / 5 = 3
@@ -413,26 +433,32 @@ echo "5" | ./avg
 ## Tips and Tricks
 
 ### Comments
+
 Use `REM` for comments:
+
 ```basic
 10 REM This is a comment
 20 LET X = 10  ` This is also a comment
 ```
 
 ### Line Numbering
+
 - Line numbers don't need to be sequential
 - Common practice: increment by 10 (allows inserting lines later)
 - Example: 10, 20, 30... instead of 1, 2, 3...
 
 ### Variable Names
+
 - Single letters work best: A, B, C, X, Y, Z
 - Multi-character names are supported: SUM, COUNT, TOTAL
 
 ### Debugging
+
 - Use PRINT statements to see variable values
 - Add REM comments to document your logic
 
 ### Performance
+
 - Avoid excessive GOTO statements (makes code hard to follow)
 - Use FOR loops instead of GOTO for counting
 - Keep loop bodies simple for better performance
@@ -442,12 +468,14 @@ Use `REM` for comments:
 ## Compilation Tips
 
 ### LLVM IR Only
+
 ```bash
 # Generate LLVM IR (.ll file)
 stack exec basic -- -S program.basic -o output.ll
 ```
 
 ### Full Compilation
+
 ```bash
 # Generate LLVM IR
 stack exec basic -- -S program.basic -o program.ll
@@ -460,12 +488,14 @@ clang program.ll runtime.c -o program
 ```
 
 ### Optimization
+
 ```bash
 # With LLVM optimizations
 clang -O3 program.ll runtime.c -o program
 ```
 
 ### View LLVM IR
+
 ```bash
 # Human-readable LLVM IR
 cat program.ll

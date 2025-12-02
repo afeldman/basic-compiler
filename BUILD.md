@@ -427,6 +427,7 @@ View build status: [GitHub Actions](https://github.com/afeldman/basic-compiler/a
 #### VS Code
 
 Install extensions:
+
 - Haskell (haskell.haskell)
 - LLVM (llvm-vs-code-extensions.vscode-lldb)
 
