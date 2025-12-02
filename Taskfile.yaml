@@ -20,26 +20,94 @@ tasks:
     cmds:
       - stack clean
       - rm -f src/AbsBasic.hs src/LexBasic.hs src/ParBasic.hs src/ErrM.hs
-      - rm -f test/*.ll test/a.out
+      - rm -f test/*.ll test/*.o test/hello test/fib test/fact test/test_prog test/loops test/cond
 
-  test:
-    desc: Test the compiler with example programs
+  test:hello:
+    desc: Test Hello World program
     deps: [build]
     cmds:
       - echo "=== Testing Hello World ==="
-      - stack exec basic -- -S test/hallo_welt.basic
+      - stack exec basic -- -S test/hallo_welt.basic -o test/hallo_welt.ll
       - clang test/hallo_welt.ll runtime.c -o test/hello
       - ./test/hello
       - echo ""
+
+  test:fibonacci:
+    desc: Test Fibonacci program
+    deps: [build]
+    cmds:
+      - echo "=== Testing Fibonacci ==="
+      - stack exec basic -- -S test/fibonacci.basic -o test/fibonacci.ll
+      - clang test/fibonacci.ll runtime.c -o test/fib
+      - echo "10" | ./test/fib
+      - echo ""
+
+  test:factorial:
+    desc: Test Factorial program
+    deps: [build]
+    cmds:
+      - echo "=== Testing Factorial ==="
+      - stack exec basic -- -S test/factorial.basic -o test/factorial.ll
+      - clang test/factorial.ll runtime.c -o test/fact
+      - echo "5" | ./test/fact
+      - echo ""
+
+  test:loops:
+    desc: Test loop constructs
+    deps: [build]
+    cmds:
+      - echo "=== Testing Loops ==="
+      - stack exec basic -- -S test/loops.basic -o test/loops.ll
+      - clang test/loops.ll runtime.c -o test/loops
+      - ./test/loops
+      - echo ""
+
+  test:conditions:
+    desc: Test conditional statements
+    deps: [build]
+    cmds:
+      - echo "=== Testing Conditions ==="
+      - stack exec basic -- -S test/conditions.basic -o test/conditions.ll
+      - clang test/conditions.ll runtime.c -o test/cond
+      - echo "5" | ./test/cond
+      - echo "-3" | ./test/cond
+      - echo "0" | ./test/cond
+      - echo ""
+
+  test:average:
+    desc: Test average calculator
+    deps: [build]
+    cmds:
       - echo "=== Testing Average Program ==="
-      - stack exec basic -- -S test/test_prog.basic
+      - stack exec basic -- -S test/test_prog.basic -o test/test_prog.ll
       - clang test/test_prog.ll runtime.c -o test/test_prog
       - echo "5" | ./test/test_prog
+      - echo ""
+
+  test:
+    desc: Run all tests
+    deps:
+      [
+        test:hello,
+        test:fibonacci,
+        test:factorial,
+        test:loops,
+        test:conditions,
+        test:average,
+      ]
+    cmds:
+      - echo "✅ All tests passed!"
 
   run:
-    desc: Run compiler on a file
+    desc: "Run compiler on a file (usage: task run -- -S program.basic)"
     cmds:
       - stack exec basic -- {{.CLI_ARGS}}
+
+  install:
+    desc: Install compiler binary
+    deps: [build]
+    cmds:
+      - stack install
 
   default:
     desc: Build and test

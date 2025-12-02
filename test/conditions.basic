@@ -1,0 +1,10 @@
+10 REM Test conditional statements
+20 INPUT X
+30 IF X = 0 THEN 100
+40 IF X < 0 THEN 200
+50 PRINT "Positive"
+60 GOTO 300
+100 PRINT "Zero"
+110 GOTO 300
+200 PRINT "Negative"
+300 END

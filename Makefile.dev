@@ -1,0 +1,97 @@
+.PHONY: all build clean test generate install help
+
+# Default target
+all: build
+
+# Generate parser from BNFC grammar
+generate:
+	@echo "Generating parser from BNFC grammar..."
+	bnfc -m --haskell -d basic.cf
+	@mkdir -p src
+	@mv basic/*.hs src/ 2>/dev/null || true
+	@rmdir basic 2>/dev/null || true
+
+# Build the compiler
+build: generate
+	@echo "Building BASIC compiler..."
+	stack build
+
+# Clean build artifacts
+clean:
+	@echo "Cleaning build artifacts..."
+	stack clean
+	rm -f src/AbsBasic.hs src/LexBasic.hs src/ParBasic.hs src/ErrM.hs
+	rm -f test/*.ll test/*.o test/hello test/fib test/fact test/test_prog test/loops test/cond
+
+# Test all example programs
+test: test-hello test-fibonacci test-factorial test-loops test-conditions test-average
+	@echo "✅ All tests passed!"
+
+# Test individual programs
+test-hello: build
+	@echo "=== Testing Hello World ==="
+	stack exec basic -- -S test/hallo_welt.basic -o test/hallo_welt.ll
+	clang test/hallo_welt.ll runtime.c -o test/hello
+	./test/hello
+	@echo ""
+
+test-fibonacci: build
+	@echo "=== Testing Fibonacci ==="
+	stack exec basic -- -S test/fibonacci.basic -o test/fibonacci.ll
+	clang test/fibonacci.ll runtime.c -o test/fib
+	echo "10" | ./test/fib
+	@echo ""
+
+test-factorial: build
+	@echo "=== Testing Factorial ==="
+	stack exec basic -- -S test/factorial.basic -o test/factorial.ll
+	clang test/factorial.ll runtime.c -o test/fact
+	echo "5" | ./test/fact
+	@echo ""
+
+test-loops: build
+	@echo "=== Testing Loops ==="
+	stack exec basic -- -S test/loops.basic -o test/loops.ll
+	clang test/loops.ll runtime.c -o test/loops
+	./test/loops
+	@echo ""
+
+test-conditions: build
+	@echo "=== Testing Conditions ==="
+	stack exec basic -- -S test/conditions.basic -o test/conditions.ll
+	clang test/conditions.ll runtime.c -o test/cond
+	echo "5" | ./test/cond
+	@echo ""
+
+test-average: build
+	@echo "=== Testing Average Program ==="
+	stack exec basic -- -S test/test_prog.basic -o test/test_prog.ll
+	clang test/test_prog.ll runtime.c -o test/test_prog
+	echo "5" | ./test/test_prog
+	@echo ""
+
+# Install compiler binary to ~/.local/bin
+install: build
+	@echo "Installing BASIC compiler..."
+	stack install
+
+# Show help
+help:
+	@echo "BASIC Compiler - Makefile targets:"
+	@echo ""
+	@echo "  make build          - Build the compiler"
+	@echo "  make test           - Run all tests"
+	@echo "  make test-hello     - Test Hello World"
+	@echo "  make test-fibonacci - Test Fibonacci"
+	@echo "  make test-factorial - Test Factorial"
+	@echo "  make test-loops     - Test loop constructs"
+	@echo "  make test-conditions - Test conditionals"
+	@echo "  make test-average   - Test average calculator"
+	@echo "  make clean          - Clean build artifacts"
+	@echo "  make install        - Install compiler to ~/.local/bin"
+	@echo "  make help           - Show this help"
+	@echo ""
+	@echo "Examples:"
+	@echo "  stack exec basic -- -S program.basic"
+	@echo "  clang program.ll runtime.c -o program"
+	@echo "  ./program"

@@ -1,0 +1,177 @@
+name: Build and Test BASIC Compiler
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+    workflow_dispatch:
+
+jobs:
+    build:
+        name: Build and Test
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Haskell
+              uses: haskell-actions/setup@v2
+              with:
+                  ghc-version: "9.4.8"
+                  enable-stack: true
+                  stack-version: "latest"
+
+            - name: Install LLVM
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y llvm-14 llvm-14-dev clang-14 || \
+                  sudo apt-get install -y llvm-15 llvm-15-dev clang-15 || \
+                  sudo apt-get install -y llvm llvm-dev clang
+
+            - name: Install BNFC
+              run: |
+                  stack install BNFC
+                  echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+            - name: Cache Stack dependencies
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.stack
+                      .stack-work
+                  key: ${{ runner.os }}-stack-basic-${{ hashFiles('stack.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-stack-basic-
+
+            - name: Generate parser
+              run: |
+                  bnfc -m --haskell -d basic.cf
+                  mkdir -p src
+                  mv basic/*.hs src/ 2>/dev/null || true
+                  rmdir basic 2>/dev/null || true
+
+            - name: Build compiler
+              run: stack build
+
+            - name: Test Hello World
+              run: |
+                  stack exec basic -- -S test/hallo_welt.basic -o test/hallo_welt.ll
+                  clang test/hallo_welt.ll runtime.c -o test/hello || \
+                  clang-14 test/hallo_welt.ll runtime.c -o test/hello || \
+                  clang-15 test/hallo_welt.ll runtime.c -o test/hello
+                  ./test/hello
+
+            - name: Test Fibonacci
+              run: |
+                  stack exec basic -- -S test/fibonacci.basic -o test/fibonacci.ll
+                  clang test/fibonacci.ll runtime.c -o test/fib || \
+                  clang-14 test/fibonacci.ll runtime.c -o test/fib || \
+                  clang-15 test/fibonacci.ll runtime.c -o test/fib
+                  echo "10" | ./test/fib
+
+            - name: Test Factorial
+              run: |
+                  stack exec basic -- -S test/factorial.basic -o test/factorial.ll
+                  clang test/factorial.ll runtime.c -o test/fact || \
+                  clang-14 test/factorial.ll runtime.c -o test/fact || \
+                  clang-15 test/factorial.ll runtime.c -o test/fact
+                  echo "5" | ./test/fact
+
+            - name: Test Loops
+              run: |
+                  stack exec basic -- -S test/loops.basic -o test/loops.ll
+                  clang test/loops.ll runtime.c -o test/loops || \
+                  clang-14 test/loops.ll runtime.c -o test/loops || \
+                  clang-15 test/loops.ll runtime.c -o test/loops
+                  ./test/loops
+
+            - name: Test Conditions
+              run: |
+                  stack exec basic -- -S test/conditions.basic -o test/conditions.ll
+                  clang test/conditions.ll runtime.c -o test/cond || \
+                  clang-14 test/conditions.ll runtime.c -o test/cond || \
+                  clang-15 test/conditions.ll runtime.c -o test/cond
+                  echo "5" | ./test/cond
+
+            - name: Package compiler
+              run: |
+                  mkdir -p artifacts
+                  stack install --local-bin-path artifacts
+                  cp runtime.c artifacts/
+                  cp -r test artifacts/
+                  tar -czf basic-compiler.tar.gz -C artifacts .
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: basic-compiler
+                  path: basic-compiler.tar.gz
+
+    release:
+        name: Create Release
+        needs: build
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: basic-compiler
+                  path: artifacts
+
+            - name: Get commit info
+              id: commit
+              run: |
+                  echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+                  echo "date=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: build-${{ steps.commit.outputs.date }}
+                  name: BASIC Compiler Build ${{ steps.commit.outputs.date }}
+                  body: |
+                      ## BASIC Compiler
+
+                      Automated build from commit ${{ github.sha }}
+
+                      ### Features
+                      - Classic BASIC syntax with line numbers
+                      - LLVM IR code generation
+                      - Native code compilation
+                      - Complete runtime with I/O functions
+
+                      ### Supported Statements
+                      - LET, PRINT, INPUT
+                      - GOTO, IF...THEN...ELSE
+                      - FOR...TO...NEXT loops
+                      - REM comments, END
+
+                      ### Installation
+
+                      ```bash
+                      # Extract compiler
+                      tar -xzf basic-compiler.tar.gz
+                      cd artifacts
+
+                      # Run example
+                      ./basic test/hallo_welt.basic -S -o hello.ll
+                      clang hello.ll runtime.c -o hello
+                      ./hello
+                      ```
+
+                      ### Build Info
+                      - Commit: ${{ github.sha }}
+                      - Branch: ${{ github.ref_name }}
+                      - Date: ${{ steps.commit.outputs.date }}
+                  draft: false
+                  prerelease: false
+                  files: artifacts/basic-compiler.tar.gz
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
