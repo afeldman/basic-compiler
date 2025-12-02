@@ -5,7 +5,7 @@ description:         Compiler for classic BASIC language targeting LLVM
 license:             MIT
 license-file:        LICENSE
 author:              Anton Feldmann
-maintainer:          anton@example.com
+maintainer:          anton.feldmann@gmail.com
 category:            Compilers
 build-type:          Simple
 cabal-version:       >=1.10
